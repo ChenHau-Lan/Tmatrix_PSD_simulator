@@ -1,0 +1,6 @@
+**/__pycache__/
+**/*.pyc
+**/.DS_Store
+.git/
+Tmatrix_Mueller/
+python_Tmatrix_Mueller/
