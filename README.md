@@ -1,3 +1,12 @@
+---
+title: Tmatrix PSD Simulator
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Local T-matrix PSD Explorer
 
 Interactive polarimetric-radar PSD explorer backed by the legacy local
