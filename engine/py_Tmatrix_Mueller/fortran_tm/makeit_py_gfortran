@@ -1,0 +1,4 @@
+gfortran -fdefault-real-8 py_tmat.f90 -o tmat_py.exe
+chmod 755 tmat_py.exe
+gfortran -fdefault-real-8 py_musingle.f90 -o mueller_py.exe
+chmod 755 mueller_py.exe

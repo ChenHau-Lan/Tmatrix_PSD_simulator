@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+.DS_Store
+inp
+inp1
+inp2
+
+# Generated Fortran runtime files
+py_Tmatrix_Mueller/fortran_tm/FOLDERNAME
+py_Tmatrix_Mueller/fortran_tm/filelist_tmat
+py_Tmatrix_Mueller/fortran_tm/filelist_mueller
+py_Tmatrix_Mueller/fortran_tm/input
+py_Tmatrix_Mueller/fortran_tm/raininfo.dat
+py_Tmatrix_Mueller/fortran_tm/mueller.inp
+py_Tmatrix_Mueller/fortran_tm/log_tmat
+py_Tmatrix_Mueller/fortran_tm/log_mueller
+py_Tmatrix_Mueller/fortran_tm/out1_tmat
+py_Tmatrix_Mueller/fortran_tm/out2_tmat
+py_Tmatrix_Mueller/fortran_tm/out1_musingle
+py_Tmatrix_Mueller/fortran_tm/out1_Smatrix
+py_Tmatrix_Mueller/fortran_tm/out1_Kmatrix
+py_Tmatrix_Mueller/fortran_tm/scat_parall
+py_Tmatrix_Mueller/fortran_tm/scat_perpn
+py_Tmatrix_Mueller/fortran_tm/inp
+py_Tmatrix_Mueller/fortran_tm/inp1
+py_Tmatrix_Mueller/fortran_tm/inp2
+
+# Keep the repo focused on the web app and its local T-matrix backend.
+Tmatrix_Mueller/
+python_Tmatrix_Mueller/
+*.ipynb

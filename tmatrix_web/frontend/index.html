@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Local T-matrix PSD Explorer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17202a;
+        --muted: #667085;
+        --line: #d8dee8;
+        --panel: #ffffff;
+        --bg: #f4f7fb;
+        --accent: #0f766e;
+        --warn: #9a3412;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(22px, 3vw, 34px);
+        font-weight: 760;
+        letter-spacing: 0;
+      }
+      .subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      main {
+        display: grid;
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+        gap: 18px;
+        padding: 18px;
+      }
+      aside, section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      aside {
+        padding: 16px;
+        align-self: start;
+        position: sticky;
+        top: 14px;
+      }
+      .stack { display: grid; gap: 18px; }
+      .panel { padding: 16px; }
+      .control {
+        display: grid;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+      label {
+        font-size: 13px;
+        font-weight: 680;
+        color: #263445;
+      }
+      select, input[type="range"], input[type="number"] {
+        width: 100%;
+      }
+      select, input[type="number"] {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        min-height: 36px;
+        padding: 7px 9px;
+        font: inherit;
+        background: #fff;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 82px;
+        gap: 8px;
+        align-items: center;
+      }
+      .status {
+        border-radius: 6px;
+        border: 1px solid #fed7aa;
+        background: #fff7ed;
+        color: var(--warn);
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .status.ok {
+        border-color: #99f6e4;
+        background: #f0fdfa;
+        color: #115e59;
+      }
+      .compare {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .compare-item {
+        border: 1px solid #edf1f7;
+        border-radius: 8px;
+        padding: 12px;
+        background: #fbfcff;
+      }
+      .compare-item h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+      #plot {
+        width: 100%;
+        height: 430px;
+      }
+      #plot svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .metrics {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .metrics th, .metrics td {
+        padding: 9px 10px;
+        border-bottom: 1px solid #edf1f7;
+        text-align: left;
+      }
+      .metrics th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+      }
+      .metrics td:last-child {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+      h2 {
+        margin: 0 0 12px;
+        font-size: 17px;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #394657;
+        line-height: 1.55;
+      }
+      button {
+        width: 100%;
+        min-height: 38px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--accent);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: .65;
+        cursor: wait;
+      }
+      code {
+        background: #eef2f7;
+        border-radius: 4px;
+        padding: 1px 4px;
+      }
+      @media (max-width: 820px) {
+        main { grid-template-columns: 1fr; }
+        .compare { grid-template-columns: 1fr; }
+        aside { position: static; }
+        header { align-items: flex-start; flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Local T-matrix PSD Explorer</h1>
+        <div class="subtitle">Explore how normalized-gamma PSD changes propagate into polarimetric radar variables using the local Fortran T-matrix backend.</div>
+      </div>
+      <div class="subtitle">myPSD-style architecture: browser controls + <code>/api/compute</code> backend calculations</div>
+    </header>
+    <main>
+      <aside>
+        <div class="control">
+          <label for="hydrometeor">Hydrometeor</label>
+          <select id="hydrometeor">
+            <option value="rain">Rain verified</option>
+            <option value="frozen_rain">Frozen rain experimental</option>
+            <option value="dry_hail">Dry hail experimental</option>
+            <option value="spongy_graupel">Spongy graupel experimental</option>
+            <option value="snow_aggregate">Spongy aggregate experimental</option>
+          </select>
+        </div>
+        <div class="control">
+          <label for="band">Radar band</label>
+          <select id="band">
+            <option value="S">S band</option>
+            <option value="C">C band</option>
+            <option value="X">X band</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Dm (mm)</label>
+          <div class="row">
+            <input id="dm" type="range" min="0.2" max="8" step="0.1" value="2.0" />
+            <input id="dmNum" type="number" min="0.2" max="8" step="0.1" value="2.0" />
+          </div>
+        </div>
+        <div class="control">
+          <label>log10 Nw (mm^-1 m^-3)</label>
+          <div class="row">
+            <input id="logNw" type="range" min="1" max="6" step="0.1" value="3.5" />
+            <input id="logNwNum" type="number" min="1" max="6" step="0.1" value="3.5" />
+          </div>
+        </div>
+        <div class="control">
+          <label>mu</label>
+          <div class="row">
+            <input id="mu" type="range" min="-2" max="12" step="0.1" value="0" />
+            <input id="muNum" type="number" min="-2" max="12" step="0.1" value="0" />
+          </div>
+        </div>
+        <div class="control">
+          <label>Canting sigma (deg)</label>
+          <div class="row">
+            <input id="canting" type="range" min="0" max="40" step="1" value="0" />
+            <input id="cantingNum" type="number" min="0" max="40" step="1" value="0" />
+          </div>
+        </div>
+        <button id="run">Compute</button>
+        <div id="status" class="status ok" style="margin-top: 14px;">Waiting for a calculation.</div>
+      </aside>
+      <div class="stack">
+        <section class="panel">
+          <h2>PSD</h2>
+          <div id="plot"></div>
+        </section>
+        <section class="panel">
+          <h2>Polarimetric metrics</h2>
+          <table class="metrics">
+            <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+            <tbody id="metrics"></tbody>
+          </table>
+        </section>
+        <section class="panel">
+          <h2 id="assumptionTitle">Assumptions</h2>
+          <ul id="assumptions"></ul>
+        </section>
+        <section class="panel">
+          <h2>T-matrix Differences and Validation Status</h2>
+          <div class="compare">
+            <div class="compare-item">
+              <h3>myPSD / rustmatrix</h3>
+              <ul>
+                <li>Uses rustmatrix, a Rust implementation of the pytmatrix numerical core.</li>
+                <li>Caches scatter tables by band, hydrometeor type, and canting angle.</li>
+                <li>Rain, hail, and snow habits each have explicit axis-ratio and refractive-index assumptions.</li>
+                <li>Snow can use diameter-dependent Maxwell-Garnett effective media.</li>
+              </ul>
+            </div>
+            <div class="compare-item">
+              <h3>Local Fortran T-matrix</h3>
+              <ul>
+                <li>Wraps legacy Fortran executables through py_Tmatrix_Mueller and exchanges T-matrix, S-matrix, and K-matrix data via files.</li>
+                <li>The rain path is the verified local path; non-rain paths originally failed when Mueller tried to read <code>inp/inp1/inp2</code>.</li>
+                <li>The Python wrapper now keeps those legacy filenames synced, so hail/graupel/snow can run as diagnostics.</li>
+                <li>Non-rain dielectric and density assumptions still need reproducible validation before scientific use.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <section class="panel">
+          <h2>References</h2>
+          <ul>
+            <li>Beard and Chuang (1987): equilibrium raindrop shape model used for the rain axis-ratio assumption.</li>
+            <li>Testud et al. (2001): normalized-gamma PSD convention, N(D) = Nw f(mu) (D/Dm)^mu exp[-(4+mu)D/Dm].</li>
+            <li>myPSD by Steve Nesbitt: public reference implementation using rustmatrix for T-matrix scattering.</li>
+            <li>pytmatrix/rustmatrix: modern reference implementation for T-matrix scattering workflows.</li>
+          </ul>
+        </section>
+      </div>
+    </main>
+    <script>
+      const fields = ["dm", "logNw", "mu", "canting"];
+      for (const id of fields) {
+        const slider = document.getElementById(id);
+        const number = document.getElementById(`${id}Num`);
+        slider.addEventListener("input", () => { number.value = slider.value; schedule(); });
+        number.addEventListener("input", () => { slider.value = number.value; schedule(); });
+      }
+      document.getElementById("band").addEventListener("change", schedule);
+      document.getElementById("hydrometeor").addEventListener("change", schedule);
+      document.getElementById("run").addEventListener("click", compute);
+
+      let timer = null;
+      function schedule() {
+        clearTimeout(timer);
+        timer = setTimeout(compute, 250);
+      }
+
+      function requestBody() {
+        return {
+          hydrometeor: document.getElementById("hydrometeor").value,
+          band: document.getElementById("band").value,
+          dm: Number(document.getElementById("dmNum").value),
+          log_nw: Number(document.getElementById("logNwNum").value),
+          mu: Number(document.getElementById("muNum").value),
+          canting_std_deg: Number(document.getElementById("cantingNum").value),
+          d_step: 0.1,
+        };
+      }
+
+      async function compute() {
+        const button = document.getElementById("run");
+        const status = document.getElementById("status");
+        button.disabled = true;
+        status.className = "status";
+        status.textContent = "Computing. The first run for a new hydrometeor or band builds a fresh T-matrix table and may take a few seconds.";
+        try {
+          const response = await fetch("/api/compute", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(requestBody()),
+          });
+          const payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || response.statusText);
+          render(payload);
+          status.className = payload.assumptions.verified ? "status ok" : "status";
+          status.textContent = payload.assumptions.verified
+            ? "The verified rain path completed with the local T-matrix backend."
+            : "This hydrometeor can run, but it is still a legacy diagnostic path; dielectric, density, and shape assumptions need validation.";
+        } catch (err) {
+          status.className = "status";
+          status.textContent = `Calculation failed: ${err.message}`;
+        } finally {
+          button.disabled = false;
+        }
+      }
+
+      function render(payload) {
+        renderPlot(payload.nd.d_mm, payload.nd.n_d);
+
+        const rows = [
+          ["Zh", payload.metrics.zh_dbz, "dBZ"],
+          ["Zv", payload.metrics.zv_dbz, "dBZ"],
+          ["ZDR", payload.metrics.zdr_db, "dB"],
+          ["KDP", payload.metrics.kdp_deg_per_km, "deg/km"],
+          ["rhoHV", payload.metrics.rho_hv, ""],
+          ["Ah", payload.metrics.ah_db_per_km, "dB/km"],
+          ["ADP", payload.metrics.adr_db_per_km, "dB/km"],
+          ["Nt", payload.metrics.nt_per_m3, "m^-3"],
+        ];
+        document.getElementById("metrics").innerHTML = rows.map(([name, value, unit]) => {
+          const display = Math.abs(value) >= 1e4 ? value.toExponential(3) : value.toFixed(3);
+          return `<tr><td>${name}</td><td>${display} ${unit}</td></tr>`;
+        }).join("");
+
+        document.getElementById("assumptionTitle").textContent = `Hydrometeor assumptions — ${payload.assumptions.title}`;
+        document.getElementById("assumptions").innerHTML =
+          payload.assumptions.bullets.map((item) => `<li>${item}</li>`).join("");
+      }
+
+      function renderPlot(x, y) {
+        const width = 900;
+        const height = 430;
+        const margin = { left: 76, right: 22, top: 18, bottom: 56 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+        const yPositive = y.filter((v) => v > 0);
+        const xMin = Math.min(...x);
+        const xMax = Math.max(...x);
+        const yMin = Math.log10(Math.max(Math.min(...yPositive), 1e-6));
+        const yMax = Math.log10(Math.max(...yPositive));
+        const sx = (v) => margin.left + ((v - xMin) / (xMax - xMin)) * innerW;
+        const sy = (v) => margin.top + (1 - ((Math.log10(Math.max(v, 1e-12)) - yMin) / (yMax - yMin || 1))) * innerH;
+        const points = x.map((v, i) => `${sx(v).toFixed(2)},${sy(y[i]).toFixed(2)}`).join(" ");
+        const xTicks = [xMin, xMin + (xMax - xMin) / 4, xMin + (xMax - xMin) / 2, xMin + 3 * (xMax - xMin) / 4, xMax];
+        const yTicks = [];
+        for (let p = Math.ceil(yMin); p <= Math.floor(yMax); p += 1) yTicks.push(p);
+        document.getElementById("plot").innerHTML = `
+          <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="PSD log plot">
+            <rect x="0" y="0" width="${width}" height="${height}" fill="#fff"></rect>
+            <rect x="${margin.left}" y="${margin.top}" width="${innerW}" height="${innerH}" fill="#fff" stroke="#d8dee8"></rect>
+            ${xTicks.map((t) => `<line x1="${sx(t)}" x2="${sx(t)}" y1="${margin.top}" y2="${margin.top + innerH}" stroke="#eef2f7"></line><text x="${sx(t)}" y="${height - 22}" text-anchor="middle" font-size="12" fill="#667085">${t.toFixed(1)}</text>`).join("")}
+            ${yTicks.map((p) => `<line x1="${margin.left}" x2="${margin.left + innerW}" y1="${sy(10 ** p)}" y2="${sy(10 ** p)}" stroke="#eef2f7"></line><text x="${margin.left - 10}" y="${sy(10 ** p) + 4}" text-anchor="end" font-size="12" fill="#667085">1e${p}</text>`).join("")}
+            <polyline points="${points}" fill="none" stroke="#0f766e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"></polyline>
+            <text x="${margin.left + innerW / 2}" y="${height - 6}" text-anchor="middle" font-size="13" fill="#263445">Diameter D (mm)</text>
+            <text x="18" y="${margin.top + innerH / 2}" transform="rotate(-90 18 ${margin.top + innerH / 2})" text-anchor="middle" font-size="13" fill="#263445">N(D) (mm^-1 m^-3)</text>
+          </svg>`;
+      }
+
+      compute();
+    </script>
+  </body>
+</html>
