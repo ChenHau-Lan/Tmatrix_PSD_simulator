@@ -197,7 +197,8 @@ def compute(
     rhohv = float(radar.calc_RHOHV(scatterer, nd, diameter, d_step))
     ah = float(radar.calc_ATTH(scatterer, nd, diameter, d_step))
     adr = float(radar.calc_DATT(scatterer, nd, diameter, d_step))
-    nt = float(np.trapz(nd_plot, _D_PLOT))
+    integrate_trapezoid = np.trapezoid if hasattr(np, "trapezoid") else np.trapz
+    nt = float(integrate_trapezoid(nd_plot, _D_PLOT))
 
     assumption_bullets = [
         "T-matrix table is produced by the local Fortran executables in py_Tmatrix_Mueller/fortran_tm.",
